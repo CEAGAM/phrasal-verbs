@@ -1309,16 +1309,25 @@
         let isFirebaseReady = false;
         let currentUser = null;
 
-        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-            try {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                isFirebaseReady = true;
-            } catch (e) {
-                console.error("Firebase setup failed:", e);
-            }
+        // Tus credenciales reales de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-sl0BfKWiNoQghtoeHCCNdrqHaYJdI38",
+            authDomain: "phrasalverbsquizchallenge.firebaseapp.com",
+            projectId: "phrasalverbsquizchallenge",
+            storageBucket: "phrasalverbsquizchallenge.firebasestorage.app",
+            messagingSenderId: "808132427851",
+            appId: "1:808132427851:web:a14190fe589bbb3b950dce",
+            measurementId: "G-T469SHY05G"
+        };
+
+        // Inicialización directa
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            isFirebaseReady = true;
+        } catch (e) {
+            console.error("Firebase setup failed:", e);
         }
 
         // Local state variables
