@@ -1008,8 +1008,9 @@
 
     <!-- Firestore / Firebase Setup dynamically imported from modules -->
     <script type="module">
+        // 1. Importaciones unificadas en la versión 11.6.1
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, initializeAuth, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Quiz Data bank
@@ -1320,11 +1321,16 @@
             measurementId: "G-T469SHY05G"
         };
 
-        // Inicialización directa
+        // 2. Inicialización limpia e inicialización forzada de Auth en memoria para Sandboxes
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            auth = getAuth(app);
+            
+            // Forzamos explícitamente el uso de memoria RAM evitando IndexedDB
+            auth = initializeAuth(app, {
+                persistence: inMemoryPersistence
+            });
+            
             isFirebaseReady = true;
         } catch (e) {
             console.error("Firebase setup failed:", e);
@@ -1769,7 +1775,13 @@
         };
 
         document.getElementById('btn-create-room').addEventListener('click', async () => {
-            if (!isFirebaseReady || !currentUser) return;
+            if (!isFirebaseReady) return;
+            
+            // Asegura autenticación antes de crear
+            if (!currentUser) {
+                currentUser = await authenticateUser();
+            }
+            if (!currentUser) return;
             
             const newCode = generateRoomCode();
             currentRoomId = newCode;
@@ -1818,7 +1830,12 @@
 
         // JOIN AS PLAYER
         document.getElementById('btn-join-room').addEventListener('click', async () => {
-            if (!isFirebaseReady || !currentUser) return;
+            if (!isFirebaseReady) return;
+
+            if (!currentUser) {
+                currentUser = await authenticateUser();
+            }
+            if (!currentUser) return;
 
             const codeInput = document.getElementById('join-room-code-input').value.trim().toUpperCase();
             if (!codeInput) return;
@@ -1867,7 +1884,12 @@
 
         // JOIN AS SPECTATOR / JUDGE
         document.getElementById('btn-join-judge').addEventListener('click', async () => {
-            if (!isFirebaseReady || !currentUser) return;
+            if (!isFirebaseReady) return;
+
+            if (!currentUser) {
+                currentUser = await authenticateUser();
+            }
+            if (!currentUser) return;
 
             const codeInput = document.getElementById('join-room-code-input').value.trim().toUpperCase();
             if (!codeInput) return;
@@ -1945,7 +1967,7 @@
                             <span style="color: ${labelColor}">
                                 <i class="fa-solid ${filled ? 'fa-circle-check' : 'fa-circle-dot'}"></i> Team ${index + 1}: ${team.name}
                             </span>
-                            ${team.playerId === currentUser.uid ? '<span class="badge" style="background:#4f46e5; margin:0">YOU</span>' : ''}
+                            ${currentUser && team.playerId === currentUser.uid ? '<span class="badge" style="background:#4f46e5; margin:0">YOU</span>' : ''}
                         </div>
                     `;
                 });
@@ -1955,7 +1977,7 @@
                 if (data.judges && data.judges.length > 0) {
                     judgesContainer.innerHTML = '';
                     data.judges.forEach((judge) => {
-                        const isMe = judge.playerId === currentUser.uid;
+                        const isMe = currentUser && judge.playerId === currentUser.uid;
                         judgesContainer.innerHTML += `
                             <div class="lobby-team-slot filled" style="border-color: var(--judge-color)">
                                 <span style="color: var(--judge-color)">
