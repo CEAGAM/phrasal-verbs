@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phrasal Verbs Quiz Challenge - Real-Time Multiplayer</title>
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Modern CSS Variables & Resets */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --error: #ef4444;
+            --error-bg: #fef2f2;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --p1-color: #3b82f6;
+            --p2-color: #ec4899;
+            --p3-color: #f59e0b;
+            --p4-color: #8b5cf6;
+            --solo-color: #10b981;
+            --judge-color: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ambient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-verb {
+            position: absolute;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            color: rgba(79, 70, 229, 0.12);
+            filter: blur(2px);
+            user-select: none;
+            animation: float 12s ease-in-out infinite alternate;
+        }
+
+        .verb-1 { top: 10%; left: 15%; font-size: 2.5rem; animation-delay: 0s; }
+        .verb-2 { top: 25%; left: 75%; font-size: 3.2rem; animation-delay: 2s; filter: blur(3px); }
+        .verb-3 { top: 70%; left: 10%; font-size: 3rem; animation-delay: 4s; }
+        .verb-4 { top: 80%; left: 80%; font-size: 2.2rem; animation-delay: 1s; filter: blur(1.5px); }
+        .verb-5 { top: 45%; left: 5%; font-size: 2rem; animation-delay: 5s; filter: blur(2.5px); }
+        .verb-6 { top: 15%; left: 50%; font-size: 2.8rem; animation-delay: 3s; }
+        .verb-7 { top: 85%; left: 45%; font-size: 3.5rem; animation-delay: 6s; filter: blur(3.5px); }
+        .verb-8 { top: 50%; left: 85%; font-size: 2.4rem; animation-delay: 2.5s; }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+            100% { transform: translateY(15px) rotate(-2deg); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 10;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex;
+            animation: slideIn 0.4s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .icon-banner {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            font-family: 'Comfortaa', sans-serif;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .welcome-desc {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .mode-selection {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .mode-card-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .mode-card-btn i {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+            width: 40px;
+            text-align: center;
+        }
+
+        .mode-card-btn .mode-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mode-card-btn span {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+        }
+
+        .mode-card-btn small {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .mode-card-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .mode-card-btn.selected[data-mode="individual"] { border-color: var(--solo-color); background-color: #ecfdf5; }
+        .mode-card-btn.selected[data-mode="individual"] i { color: var(--solo-color); }
+
+        .mode-card-btn.selected[data-mode="challenge-local"] { border-color: var(--primary); background-color: #f5f3ff; }
+        .mode-card-btn.selected[data-mode="challenge-local"] i { color: var(--primary); }
+
+        .mode-card-btn.selected[data-mode="challenge-online"] { border-color: var(--p1-color); background-color: #eff6ff; }
+        .mode-card-btn.selected[data-mode="challenge-online"] i { color: var(--p1-color); }
+
+        /* Configuration Panels Drawers */
+        .config-drawer {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+            animation: slideIn 0.3s ease;
+        }
+
+        .team-count-selector {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .count-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .count-btn.active {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+            color: var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input {
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .input-p1 { border-left: 6px solid var(--p1-color) !important; }
+        .input-p2 { border-left: 6px solid var(--p2-color) !important; }
+        .input-p3 { border-left: 6px solid var(--p3-color) !important; }
+        .input-p4 { border-left: 6px solid var(--p4-color) !important; }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: auto;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Lobby and Room Details */
+        .lobby-code-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lobby-teams-list {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lobby-team-slot {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        .lobby-team-slot.filled {
+            border-color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .lobby-section-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-align: left;
+            width: 100%;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .creator-credit {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 15px;
+            width: 100%;
+        }
+
+        /* Active Turn Banner (Challenge modes) */
+        .turn-banner {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .turn-p1 { background-color: #eff6ff; color: var(--p1-color); border: 1px solid #bfdbfe; }
+        .turn-p2 { background-color: #fdf2f8; color: var(--p2-color); border: 1px solid #fbcfe8; }
+        .turn-p3 { background-color: #fffbeb; color: var(--p3-color); border: 1px solid #fde68a; }
+        .turn-p4 { background-color: #f5f3ff; color: var(--p4-color); border: 1px solid #ddd6fe; }
+        .turn-judge { background-color: #f1f5f9; color: var(--judge-color); border: 1px solid #cbd5e1; }
+
+        /* Dynamic Scoreboards */
+        .live-scoreboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .score-box {
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .score-box-p1 { border-left: 4px solid var(--p1-color); }
+        .score-box-p2 { border-left: 4px solid var(--p2-color); }
+        .score-box-p3 { border-left: 4px solid var(--p3-color); }
+        .score-box-p4 { border-left: 4px solid var(--p4-color); }
+        
+        .score-box-solo { 
+            border-left: 4px solid var(--solo-color);
+            display: none;
+        }
+
+        .score-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Two-Phase Step Badge Indicators */
+        .step-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 18px;
+        }
+
+        .step-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background-color: #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .step-badge.active {
+            color: white;
+            background-color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .step-badge.completed {
+            color: white;
+            background-color: var(--success);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.4;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .option-btn {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+            transform: translateX(4px);
+        }
+
+        .correct-answer {
+            background-color: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+            font-weight: 600;
+        }
+
+        .feedback-card {
+            margin-top: 20px;
+            background-color: var(--success-bg);
+            border: 1px dashed var(--success);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: left;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feedback-card h3 {
+            color: var(--success);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-card p {
+            font-size: 0.95rem;
+            color: #1e293b;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 20px;
+            color: white;
+            margin-top: 4px;
+        }
+
+        .badge-separable { background-color: #f59e0b; }
+        .badge-inseparable { background-color: #3b82f6; }
+        .badge-intransitive { background-color: #8b5cf6; }
+
+        .continue-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            background-color: var(--success);
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .continue-btn:hover {
+            opacity: 0.9;
+        }
+
+        .vs-results {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #e2e8f0;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .result-card-winner {
+            background-color: var(--success-bg);
+            border-color: var(--success);
+            animation: bounce 1s infinite alternate;
+        }
+
+        .result-team-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .result-team-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: white;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .result-score {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        /* Native dialog styling for error modals */
+        dialog {
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 35px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            background: white;
+            outline: none;
+        }
+
+        dialog::backdrop {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+        }
+
+        .popup-icon {
+            font-size: 3.5rem;
+            color: var(--error);
+            margin-bottom: 15px;
+        }
+
+        dialog h2 {
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 1.8rem;
+            color: var(--error);
+            margin-bottom: 12px;
+        }
+
+        dialog p {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        dialog strong {
+            color: var(--primary);
+            background-color: #f5f3ff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .info-block {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            border-radius: 4px 8px 8px 4px;
+            text-align: left;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .close-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .close-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .warning-block {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .card { padding: 24px 20px; border-radius: 20px; }
+            h1 { font-size: 1.6rem; margin-bottom: 12px; }
+            .welcome-desc { font-size: 0.95rem; margin-bottom: 20px; }
+            .mode-selection { gap: 10px; margin-bottom: 20px; }
+            .mode-card-btn { padding: 15px 10px; }
+            .mode-card-btn i { font-size: 1.6rem; }
+            .mode-card-btn span { font-size: 0.9rem; }
+            .config-drawer { margin-bottom: 20px; }
+            .input-group input { padding: 10px 14px; font-size: 0.95rem; }
+            .btn-primary { width: 100%; padding: 14px 24px; font-size: 1.1rem; }
+            .turn-banner { font-size: 0.95rem; padding: 10px 16px; margin-bottom: 15px; }
+            .progress-text { font-size: 0.8rem; margin-bottom: 10px; }
+            .question-text { font-size: 1.1rem; min-height: auto; margin-bottom: 16px; }
+            .options-container { gap: 10px; }
+            .option-btn { padding: 14px 18px; font-size: 0.9rem; border-radius: 12px; }
+            .feedback-card { padding: 16px; border-radius: 14px; margin-top: 16px; }
+            dialog { padding: 24px 20px; border-radius: 20px; }
+            dialog h2 { font-size: 1.45rem; }
+            dialog p { font-size: 0.95rem; }
+            .verb-5, .verb-6, .verb-7, .verb-8 { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg">
+        <div class="bg-verb verb-1">give up</div>
+        <div class="bg-verb verb-2">look forward to</div>
+        <div class="bg-verb verb-3">run out of</div>
+        <div class="bg-verb verb-4">call off</div>
+        <div class="bg-verb verb-5">carry on</div>
+        <div class="bg-verb verb-6">bring up</div>
+        <div class="bg-verb verb-7">check out</div>
+        <div class="bg-verb verb-8">get along</div>
+    </div>
+
+    <!-- Main Card Container -->
+    <div class="card">
+        
+        <!-- Welcome Screen -->
+        <div class="screen active" id="welcome-screen">
+            <div class="icon-banner">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1>Phrasal Verbs Quiz</h1>
+            <p class="welcome-desc">
+                Welcome! Practice high-frequency English phrasal verbs. Choose your preferred study mode below:
+            </p>
+            
+            <!-- Three Mode Selections -->
+            <div class="mode-selection">
+                <div class="mode-card-btn selected" data-mode="individual" id="mode-solo-btn">
+                    <i class="fa-solid fa-user"></i>
+                    <div class="mode-info">
+                        <span>Individual</span>
+                        <small>Single Player (Offline)</small>
+                    </div>
+                </div>
+                <div class="mode-card-btn" data-mode="challenge-local" id="mode-vs-local-btn">
+                    <i class="fa-solid fa-people-arrows"></i>
+                    <div class="mode-info">
+                        <span>Local Challenge</span>
+                        <small>Pass & Play (Same Phone)</small>
+                    </div>
+                </div>
+                <div class="mode-card-btn" data-mode="challenge-online" id="mode-vs-online-btn">
+                    <i class="fa-solid fa-wifi"></i>
+                    <div class="mode-info">
+                        <span>Online Challenge</span>
+                        <small>Real-Time Sync (Multi-Phone)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Panels -->
+            <!-- Local Challenge Configuration Panel -->
+            <div class="config-drawer" id="local-inputs-container">
+                <div class="input-group">
+                    <label>Number of Teams / Groups</label>
+                    <div class="team-count-selector">
+                        <button type="button" class="count-btn active" data-count="2">2 Teams</button>
+                        <button type="button" class="count-btn" data-count="3">3 Teams</button>
+                        <button type="button" class="count-btn" data-count="4">4 Teams</button>
+                    </div>
+                </div>
+
+                <div class="input-group" id="local-group-1">
+                    <label for="p1-input">Team 1 Name (Blue)</label>
+                    <input type="text" id="p1-input" class="input-p1" placeholder="Team Alpha" value="Group 1">
+                </div>
+                <div class="input-group" id="local-group-2">
+                    <label for="p2-input">Team 2 Name (Pink)</label>
+                    <input type="text" id="p2-input" class="input-p2" placeholder="Team Beta" value="Group 2">
+                </div>
+                <div class="input-group" id="local-group-3" style="display: none;">
+                    <label for="p3-input">Team 3 Name (Amber)</label>
+                    <input type="text" id="p3-input" class="input-p3" placeholder="Team Gamma" value="Group 3">
+                </div>
+                <div class="input-group" id="local-group-4" style="display: none;">
+                    <label for="p4-input">Team 4 Name (Purple)</label>
+                    <input type="text" id="p4-input" class="input-p4" placeholder="Team Delta" value="Group 4">
+                </div>
+            </div>
+
+            <!-- Online Sincronizado Configuration Panel -->
+            <div class="config-drawer" id="online-inputs-container">
+                <div class="warning-block" id="online-warning">Cannot connect to online service. Local mode only.</div>
+                
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label for="online-my-name-input">My Identifier / Name</label>
+                    <input type="text" id="online-my-name-input" placeholder="e.g., Team Alfa or Prof. Gomez" value="User Device">
+                </div>
+
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <button type="button" class="btn-primary" style="width: 100%;" id="btn-create-room">
+                        <i class="fa-solid fa-plus"></i> Create New Room
+                    </button>
+                </div>
+                
+                <div style="text-align: center; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">— OR —</div>
+                
+                <div class="input-group">
+                    <label for="join-room-code-input">Join Room Code</label>
+                    <input type="text" id="join-room-code-input" placeholder="e.g., AB123" style="text-transform: uppercase;">
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button type="button" class="btn-primary" style="flex: 1; background: var(--p1-color); font-size: 1rem; padding: 12px 10px;" id="btn-join-room">
+                            <i class="fa-solid fa-right-to-bracket"></i> Join as Player
+                        </button>
+                        <button type="button" class="btn-primary" style="flex: 1; background: var(--judge-color); font-size: 1rem; padding: 12px 10px;" id="btn-join-judge">
+                            <i class="fa-solid fa-gavel"></i> Join as Judge
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="start-btn">
+                Start Quiz <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <div class="creator-credit">Created by: Cesar Aguayo Amezcua</div>
+        </div>
+
+        <!-- Online Lobby Screen -->
+        <div class="screen" id="online-lobby-screen">
+            <div class="icon-banner">
+                <i class="fa-solid fa-door-open"></i>
+            </div>
+            <h1>Game Lobby</h1>
+            <p class="welcome-desc">Share this room code with your friends/classmates to join from their devices:</p>
+            
+            <div class="lobby-code-box">
+                <span id="lobby-room-code-text">PV-CODE</span>
+                <button id="copy-code-btn" style="background: none; border: none; cursor: pointer; color: var(--primary);">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>
+
+            <!-- Connected Teams Slot List -->
+            <div class="lobby-section-title"><i class="fa-solid fa-users"></i> Competitors (Max 4)</div>
+            <div class="lobby-teams-list" id="lobby-teams-list-el">
+                <!-- Connected players slots load here -->
+            </div>
+
+            <!-- Connected Judges list -->
+            <div class="lobby-section-title"><i class="fa-solid fa-gavel"></i> Jueces / Espectadores</div>
+            <div class="lobby-teams-list" id="lobby-judges-list-el">
+                <div class="lobby-team-slot" style="color: var(--text-muted); font-style: italic; justify-content: center;">
+                    No judges connected yet.
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-start-online-game" style="display: none; width: 100%; margin-top: 15px;">
+                Start Online Game <i class="fa-solid fa-play"></i>
+            </button>
+            <p id="online-lobby-waiting-msg" style="color: var(--text-muted); font-size: 0.95rem; font-weight: 600; margin-top: 15px;">
+                Waiting for host to start the game...
+            </p>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="screen" id="quiz-screen">
+            <!-- Active Turn Banner (Online & Local Challenge Modes Only) -->
+            <div class="turn-banner" id="turn-indicator">
+                <i class="fa-solid fa-gamepad"></i> <span id="current-player-text">Current Turn: Group 1</span>
+            </div>
+
+            <!-- Dynamic Scoreboards -->
+            <div class="live-scoreboard">
+                <!-- Solo Mode Score Card -->
+                <div class="score-box score-box-solo" id="solo-scoreboard-card">
+                    <span>Current Score</span>
+                    <span class="score-val" id="score-solo-val">0</span>
+                </div>
+                <!-- Challenge Mode Score Cards -->
+                <div class="score-box score-box-p1" id="vs-score-card-p1">
+                    <span id="scoreboard-p1-label">Group 1</span>
+                    <span class="score-val" id="score-p1-val">0</span>
+                </div>
+                <div class="score-box score-box-p2" id="vs-score-card-p2">
+                    <span id="scoreboard-p2-label">Group 2</span>
+                    <span class="score-val" id="score-p2-val">0</span>
+                </div>
+                <div class="score-box score-box-p3" id="vs-score-card-p3" style="display: none;">
+                    <span id="scoreboard-p3-label">Group 3</span>
+                    <span class="score-val" id="score-p3-val">0</span>
+                </div>
+                <div class="score-box score-box-p4" id="vs-score-card-p4" style="display: none;">
+                    <span id="scoreboard-p4-label">Group 4</span>
+                    <span class="score-val" id="score-p4-val">0</span>
+                </div>
+            </div>
+
+            <!-- Dual-Step Phase Indicators -->
+            <div class="step-indicators">
+                <span class="step-badge active" id="step-meaning"><i class="fa-solid fa-book-open"></i> Step 1: Meaning</span>
+                <span class="step-badge" id="step-type"><i class="fa-solid fa-tags"></i> Step 2: Grammar Type</span>
+            </div>
+
+            <div class="progress-text" id="progress-text">Question 1 of 30</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            
+            <div class="question-text" id="question">Loading...</div>
+            <div class="options-container" id="options">
+                <!-- Buttons dynamically loaded here -->
+            </div>
+
+            <!-- In-card feedback shown on correct answers -->
+            <div class="feedback-card" id="feedback-card">
+                <h3><i class="fa-solid fa-circle-check"></i> Excellent!</h3>
+                <p id="feedback-text"></p>
+                <p id="feedback-type-desc"></p>
+                <div id="feedback-badge-container"></div>
+                <button class="continue-btn" id="continue-next-btn">Next Question <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div class="screen" id="end-screen">
+            <div class="icon-banner" id="end-screen-icon" style="color: var(--success); font-size: 5rem;">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h1 id="end-screen-title">Quiz Finished!</h1>
+            <p class="welcome-desc" id="end-screen-desc">Excellent game! Here is your final summary:</p>
+            
+            <div class="vs-results" id="results-board">
+                <!-- Dynamically filled results cards -->
+            </div>
+
+            <button class="btn-primary" onclick="location.reload()">
+                Play Again <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Dialog Popup for Error states -->
+    <dialog id="error-popup">
+        <div class="popup-icon">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <h2>Incorrect!</h2>
+        <p id="error-message"></p>
+        <div class="info-block" id="error-type-info"></div>
+        <button class="close-btn" id="close-popup">Continue</button>
+    </dialog>
+
+    <!-- Firestore / Firebase Setup dynamically imported from modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Quiz Data bank
+        const quizData = [
+            {
+                verb: "go on",
+                question: "What does 'Go on' mean?",
+                options: ["To leave immediately", "To stop talking", "To continue; happen", "To start a journey"],
+                correct: 2,
+                type: "Intransitive",
+                example: "What's going on here?",
+                meaning: "'Go on' means to continue doing something, or for an event to take place."
+            },
+            {
+                verb: "pick up",
+                question: "What does 'Pick up' mean?",
+                options: ["To lift; collect; learn casually", "To destroy something", "To select carefully", "To drop down"],
+                correct: 0,
+                type: "Separable",
+                example: "Pick up your books.",
+                meaning: "'Pick up' means to lift something physically, collect a person, or acquire a skill naturally."
+            },
+            {
+                verb: "come back",
+                question: "What does 'Come back' mean?",
+                options: ["To leave a room", "To return", "To forget easily", "To change your mind"],
+                correct: 1,
+                type: "Intransitive",
+                example: "Come back soon!",
+                meaning: "'Come back' means to return to a place where the speaker is."
+            },
+            {
+                verb: "come up",
+                question: "What does 'Come up' mean?",
+                options: ["To go downstairs", "To approach; arise; be mentioned", "To reach the peak", "To feel sick"],
+                correct: 1,
+                type: "Intransitive",
+                example: "An issue came up.",
+                meaning: "'Come up' means to arise unexpectedly, appear, or be mentioned in a conversation."
+            },
+            {
+                verb: "find out",
+                question: "What does 'Find out' mean?",
+                options: ["To lose your way", "To look outside", "To discover information", "To hide something"],
+                correct: 2,
+                type: "Separable",
+                example: "I found out the truth.",
+                meaning: "'Find out' means to obtain, discover, or learn information or facts."
+            },
+            {
+                verb: "point out",
+                question: "What does 'Point out' mean?",
+                options: ["To stand in a line", "To indicate; draw attention to", "To make a sharp tip", "To argue with someone"],
+                correct: 1,
+                type: "Separable",
+                example: "She pointed out the mistake.",
+                meaning: "'Point out' means to direct attention or explicitly highlight a specific fact or detail."
+            },
+            {
+                verb: "grow up",
+                question: "What does 'Grow up' mean?",
+                options: ["To plant a seed", "To increase in price", "To become an adult", "To rise quickly"],
+                correct: 2,
+                type: "Intransitive",
+                example: "I grew up in Mexico.",
+                meaning: "'Grow up' means to develop from a child into an adult."
+            },
+            {
+                verb: "set up",
+                question: "What does 'Set up' mean?",
+                options: ["To sit down on a chair", "To establish; arrange; prepare", "To push down", "To solve a puzzle"],
+                correct: 1,
+                type: "Separable",
+                example: "They set up a new company.",
+                meaning: "'Set up' means to build, configure, construct, or establish a business, organization, or device."
+            },
+            {
+                verb: "turn out",
+                question: "What does 'Turn out' mean?",
+                options: ["To end up; prove to be", "To produce", "To activate a lamp", "To leave standard trails"],
+                correct: 0,
+                type: "Intransitive",
+                example: "It turned out well.",
+                meaning: "'Turn out' means to have a final result, develop in a particular way, or prove to be."
+            },
+            {
+                verb: "get back",
+                question: "What does 'Get back' mean?",
+                options: ["To refuse a gift", "To return; retrieve", "To lose a race", "To turn around"],
+                correct: 1,
+                type: "Intransitive",
+                example: "When did you get back?",
+                meaning: "'Get back' means to return to a place you have been before, or regain possession."
+            },
+            {
+                verb: "look up",
+                question: "What does 'Look up' mean?",
+                options: ["To search for information", "To stare at the sky", "To climb a mountain", "To admire someone"],
+                correct: 0,
+                type: "Separable",
+                example: "Look up the word.",
+                meaning: "'Look up' means to search for a specific piece of information in a dictionary, book, or online database."
+            },
+            {
+                verb: "work out",
+                question: "What does 'Work out' mean?",
+                options: ["To leave an office", "To plan a vacation", "To solve; exercise; result well", "To search outside"],
+                correct: 2,
+                type: "Separable",
+                example: "I work out every morning.",
+                meaning: "'Work out' can mean to perform physical exercise, plan/solve a problem, or develop successfully."
+            },
+            {
+                verb: "take out",
+                question: "What does 'Take out' mean?",
+                options: ["To remove from inside", "To travel abroad", "To turn off a switch", "To borrow money"],
+                correct: 0,
+                type: "Separable",
+                example: "Take out the trash.",
+                meaning: "'Take out' means to remove something from a pocket, building, bag, container, or to invite someone to a place."
+            },
+            {
+                verb: "get up",
+                question: "What does 'Get up' mean?",
+                options: ["To sleep longer", "To rise from bed", "To enter a bus", "To climb downstairs"],
+                correct: 1,
+                type: "Intransitive",
+                example: "I get up at 7.",
+                meaning: "'Get up' means to rise from your bed after sleeping, or stand up from a sitting position."
+            },
+            {
+                verb: "take over",
+                question: "What does 'Take over' mean?",
+                options: ["To jump over a wall", "To control something completely", "To take control of", "To surrender a position"],
+                correct: 2,
+                type: "Separable",
+                example: "She took over the company.",
+                meaning: "'Take over' means to assume control of something, such as a company, nation, or role."
+            },
+            {
+                verb: "get in",
+                question: "What does 'Get in' mean?",
+                options: ["To exit a building", "To enter (a vehicle or place)", "To climb up a wall", "To lock a door"],
+                correct: 1,
+                type: "Inseparable",
+                example: "Get in the car.",
+                meaning: "'Get in' means to enter a small enclosed vehicle like a car or taxi, or enter a room."
+            },
+            {
+                verb: "take up",
+                question: "What does 'Take up' mean?",
+                options: ["To raise prices", "To start a hobby; occupy time/space", "To carry a heavy bag", "To study extremely hard"],
+                correct: 1,
+                type: "Separable",
+                example: "I took up yoga last year.",
+                meaning: "'Take up' means to start doing a new activity, sport, or hobby, or occupy space/time."
+            },
+            {
+                verb: "hold up",
+                question: "What does 'Hold up' mean?",
+                options: ["To wait peacefully", "To delay; rob; support physically", "To drop down", "To catch a ball"],
+                correct: 1,
+                type: "Separable",
+                example: "Traffic held us up.",
+                meaning: "'Hold up' means to delay or postpone progress, physically support something, or commit an armed robbery."
+            },
+            {
+                verb: "get off",
+                question: "What does 'Get off' mean?",
+                options: ["To clean a surface", "To drive a car", "To leave a vehicle; descend", "To sleep on a train"],
+                correct: 2,
+                type: "Inseparable",
+                example: "Get off the bus here.",
+                meaning: "'Get off' means to exit a large vehicle such as a bus, train, plane, or bicycle."
+            },
+            {
+                verb: "take off",
+                question: "What does 'Take off' mean?",
+                options: ["To wear clothes", "To remove clothing; leave the ground", "To jump vertically", "To build a structure"],
+                correct: 1,
+                type: "Separable",
+                example: "Take off your coat. (or) The plane took off.",
+                meaning: "'Take off' means to remove an item of clothing, or when an aircraft leaves the ground."
+            },
+            {
+                verb: "get on",
+                question: "What does 'Get on' mean?",
+                options: ["To board a vehicle; make progress", "To step off a train", "To wear jewelry", "To wait for a ride"],
+                correct: 0,
+                type: "Inseparable",
+                example: "Get on the train.",
+                meaning: "'Get on' means to board a large vehicle (bus, train, plane, bike), or progress/handle a situation."
+            },
+            {
+                verb: "bring up",
+                question: "What does 'Bring up' mean?",
+                options: ["To go upstairs", "To raise (a child); mention", "To lower a curtain", "To push something down"],
+                correct: 1,
+                type: "Separable",
+                example: "She brought up an idea.",
+                meaning: "'Bring up' means to care for a child until adult, or introduce a topic/idea into conversation."
+            },
+            {
+                verb: "end up",
+                question: "What does 'End up' mean?",
+                options: ["To stop trying", "To finish in a place or situation", "To cancel a plan", "To celebrate success"],
+                correct: 1,
+                type: "Intransitive",
+                example: "We ended up at the beach.",
+                meaning: "'End up' means to reach a particular final place, state, or situation without planning it."
+            },
+            {
+                verb: "look over",
+                question: "What does 'Look over' mean?",
+                options: ["To examine quickly; review", "To ignore someone", "To watch over a wall", "To read extremely slowly"],
+                correct: 0,
+                type: "Separable",
+                example: "Look over my essay.",
+                meaning: "'Look over' means to inspect, evaluate, or review something quickly to get a general overview."
+            },
+            {
+                verb: "put down",
+                question: "What does 'Put down' mean?",
+                options: ["To raise a hand", "To hold tightly", "To place on a surface; criticize", "To write a poem"],
+                correct: 2,
+                type: "Separable",
+                example: "Put down the phone.",
+                meaning: "'Put down' means to place something you are holding onto a surface, or humiliate/criticize someone."
+            },
+            {
+                verb: "turn up",
+                question: "What does 'Turn up' mean?",
+                options: ["To arrive; increase volume; appear", "To rotate upside down", "To decline an invitation", "To shut off a light"],
+                correct: 0,
+                type: "Separable",
+                example: "Turn up the music.",
+                meaning: "'Turn up' means to arrive or appear unexpectedly, or increase the volume/heat/level of a device."
+            },
+            {
+                verb: "turn down",
+                question: "What does 'Turn down' mean?",
+                options: ["To look downward", "To reject; reduce volume", "To enter a side street", "To turn on its side"],
+                correct: 1,
+                type: "Separable",
+                example: "She turned down the offer.",
+                meaning: "'Turn down' means to refuse or reject an invitation, offer, or request; or decrease volume/intensity."
+            },
+            {
+                verb: "put off",
+                question: "What does 'Put off' mean?",
+                options: ["To postpone; discourage", "To remove a coat", "To switch off a light", "To start working"],
+                correct: 0,
+                type: "Separable",
+                example: "Don't put off the meeting.",
+                meaning: "'Put off' means to delay or postpone doing something until a later time, or discourage someone."
+            },
+            {
+                verb: "break down",
+                question: "What does 'Break down' mean?",
+                options: ["To destroy a wall", "To stop working; collapse emotionally", "To build a puzzle", "To rest silently"],
+                correct: 1,
+                type: "Intransitive",
+                example: "My car broke down.",
+                meaning: "'Break down' means when a machine, vehicle, or engine stops functioning; or a person collapses emotionally."
+            },
+            {
+                verb: "look forward to",
+                question: "What does 'Look forward to' mean?",
+                options: ["To examine in detail", "To look straight ahead", "To anticipate with pleasure", "To plan for future savings"],
+                correct: 2,
+                type: "Inseparable",
+                example: "I look forward to seeing you.",
+                meaning: "'Look forward to' means to feel excited, happy, or expectant about something that is going to happen."
+            }
+        ];
+
+        const typeInfo = {
+            "Separable": {
+                badgeClass: "badge-separable",
+                title: "Separable",
+                desc: "The verb and the particle can be separated by the direct object. If you use a pronoun (such as 'it' or 'them'), splitting them is mandatory."
+            },
+            "Inseparable": {
+                badgeClass: "badge-inseparable",
+                title: "Inseparable",
+                desc: "The verb and the particle must always stay together. The direct object always follows immediately after the particle."
+            },
+            "Intransitive": {
+                badgeClass: "badge-intransitive",
+                title: "Intransitive",
+                desc: "This phrasal verb does not take a direct object. The action stands completely on its own without affecting a receiver."
+            }
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let db, auth;
+        let isFirebaseReady = false;
+        let currentUser = null;
+
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseReady = true;
+            } catch (e) {
+                console.error("Firebase setup failed:", e);
+            }
+        }
+
+        // Local state variables
+        let currentQuestionIndex = 0;
+        let currentPhase = 'meaning'; // 'meaning' -> 'type'
+        let selectedMode = 'individual'; // 'individual', 'challenge-local', 'challenge-online'
+        let numTeams = 2; // For local challenge
+        let p1Name = "Group 1", p2Name = "Group 2", p3Name = "Group 3", p4Name = "Group 4";
+        let soloScore = 0;
+        let p1Score = 0, p2Score = 0, p3Score = 0, p4Score = 0;
+        let currentTurn = 0; // index of active team (0 to numTeams-1)
+        
+        // Online Sincronizado variables
+        let currentRoomId = null;
+        let amIHost = false;
+        let myTeamIndex = -1; // Index of the team this device is playing as. -1 for Spectator/Judge
+        let isJudge = false; // Flag to identify if current user is spectating as Judge
+        let roomStateUnsubscribe = null;
+        let onlineShuffledIndices = [];
+
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const onlineLobbyScreen = document.getElementById('online-lobby-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        
+        const modeSoloBtn = document.getElementById('mode-solo-btn');
+        const modeVsLocalBtn = document.getElementById('mode-vs-local-btn');
+        const modeVsOnlineBtn = document.getElementById('mode-vs-online-btn');
+        
+        const localInputsContainer = document.getElementById('local-inputs-container');
+        const onlineInputsContainer = document.getElementById('online-inputs-container');
+        const onlineWarning = document.getElementById('online-warning');
+        
+        const p1Input = document.getElementById('p1-input');
+        const p2Input = document.getElementById('p2-input');
+        const p3Input = document.getElementById('p3-input');
+        const p4Input = document.getElementById('p4-input');
+        
+        const turnIndicator = document.getElementById('turn-indicator');
+        const currentPlayerText = document.getElementById('current-player-text');
+        
+        const soloScoreboardCard = document.getElementById('solo-scoreboard-card');
+        const scoreSoloVal = document.getElementById('score-solo-val');
+        const vsScoreCardP1 = document.getElementById('vs-score-card-p1');
+        const vsScoreCardP2 = document.getElementById('vs-score-card-p2');
+        const vsScoreCardP3 = document.getElementById('vs-score-card-p3');
+        const vsScoreCardP4 = document.getElementById('vs-score-card-p4');
+        const scoreboardP1Label = document.getElementById('scoreboard-p1-label');
+        const scoreboardP2Label = document.getElementById('scoreboard-p2-label');
+        const scoreboardP3Label = document.getElementById('scoreboard-p3-label');
+        const scoreboardP4Label = document.getElementById('scoreboard-p4-label');
+        const scoreP1Val = document.getElementById('score-p1-val');
+        const scoreP2Val = document.getElementById('score-p2-val');
+        const scoreP3Val = document.getElementById('score-p3-val');
+        const scoreP4Val = document.getElementById('score-p4-val');
+
+        const stepMeaning = document.getElementById('step-meaning');
+        const stepType = document.getElementById('step-type');
+
+        const questionEl = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        
+        const feedbackCard = document.getElementById('feedback-card');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackTypeDesc = document.getElementById('feedback-type-desc');
+        const feedbackBadgeContainer = document.getElementById('feedback-badge-container');
+        const continueNextBtn = document.getElementById('continue-next-btn');
+
+        const popup = document.getElementById('error-popup');
+        const errorMessage = document.getElementById('error-message');
+        const errorTypeInfo = document.getElementById('error-type-info');
+        const closePopupBtn = document.getElementById('close-popup');
+        
+        const resultsBoard = document.getElementById('results-board');
+        const endScreenIcon = document.getElementById('end-screen-icon');
+        const endScreenTitle = document.getElementById('end-screen-title');
+        const endScreenDesc = document.getElementById('end-screen-desc');
+
+        async function authenticateUser() {
+            if (!isFirebaseReady) return null;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    return cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    return cred.user;
+                }
+            } catch (err) {
+                console.error("Auth helper error:", err);
+                return null;
+            }
+        }
+
+        // Setup environment auth state listener
+        if (isFirebaseReady) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                }
+            });
+        }
+
+        // Configure togglers
+        modeSoloBtn.addEventListener('click', () => {
+            selectedMode = 'individual';
+            modeSoloBtn.className = 'mode-card-btn selected';
+            modeVsLocalBtn.className = 'mode-card-btn';
+            modeVsOnlineBtn.className = 'mode-card-btn';
+            localInputsContainer.style.display = 'none';
+            onlineInputsContainer.style.display = 'none';
+        });
+
+        modeVsLocalBtn.addEventListener('click', () => {
+            selectedMode = 'challenge-local';
+            modeVsLocalBtn.className = 'mode-card-btn selected';
+            modeSoloBtn.className = 'mode-card-btn';
+            modeVsOnlineBtn.className = 'mode-card-btn';
+            localInputsContainer.style.display = 'flex';
+            onlineInputsContainer.style.display = 'none';
+        });
+
+        modeVsOnlineBtn.addEventListener('click', async () => {
+            if (!isFirebaseReady) {
+                onlineWarning.style.display = 'block';
+                return;
+            }
+            selectedMode = 'challenge-online';
+            modeVsOnlineBtn.className = 'mode-card-btn selected';
+            modeSoloBtn.className = 'mode-card-btn';
+            modeVsLocalBtn.className = 'mode-card-btn';
+            localInputsContainer.style.display = 'none';
+            onlineInputsContainer.style.display = 'flex';
+            
+            // Secure connection immediately (RULE 3)
+            if (!currentUser) {
+                currentUser = await authenticateUser();
+            }
+        });
+
+        // Local team count configurations
+        const countBtns = document.querySelectorAll('.count-btn');
+        countBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                countBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                numTeams = parseInt(btn.getAttribute('data-count'), 10);
+                
+                document.getElementById('local-group-3').style.display = numTeams >= 3 ? 'flex' : 'none';
+                document.getElementById('local-group-4').style.display = numTeams >= 4 ? 'flex' : 'none';
+            });
+        });
+
+        // Shuffle helper (Fisher-Yates)
+        function shuffleQuestions() {
+            for (let i = quizData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = quizData[i];
+                quizData[i] = quizData[j];
+                quizData[j] = temp;
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (selectedMode === 'challenge-online') {
+                return; // Sincronizado handles its own transition
+            }
+
+            welcomeScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            shuffleQuestions();
+
+            if (selectedMode === 'individual') {
+                turnIndicator.style.display = 'none';
+                soloScoreboardCard.style.display = 'block';
+                vsScoreCardP1.style.display = 'none';
+                vsScoreCardP2.style.display = 'none';
+                vsScoreCardP3.style.display = 'none';
+                vsScoreCardP4.style.display = 'none';
+                
+                soloScore = 0;
+                scoreSoloVal.textContent = "0";
+            } else {
+                // Local Challenge setup
+                p1Name = p1Input.value.trim() !== "" ? p1Input.value.trim() : "Group 1";
+                p2Name = p2Input.value.trim() !== "" ? p2Input.value.trim() : "Group 2";
+                p3Name = p3Input.value.trim() !== "" ? p3Input.value.trim() : "Group 3";
+                p4Name = p4Input.value.trim() !== "" ? p4Input.value.trim() : "Group 4";
+
+                scoreboardP1Label.textContent = p1Name;
+                scoreboardP2Label.textContent = p2Name;
+                scoreboardP3Label.textContent = p3Name;
+                scoreboardP4Label.textContent = p4Name;
+                
+                scoreP1Val.textContent = "0";
+                scoreP2Val.textContent = "0";
+                scoreP3Val.textContent = "0";
+                scoreP4Val.textContent = "0";
+                
+                p1Score = 0; p2Score = 0; p3Score = 0; p4Score = 0;
+                currentTurn = 0;
+
+                turnIndicator.style.display = 'flex';
+                soloScoreboardCard.style.display = 'none';
+                vsScoreCardP1.style.display = 'block';
+                vsScoreCardP2.style.display = 'block';
+                vsScoreCardP3.style.display = numTeams >= 3 ? 'block' : 'none';
+                vsScoreCardP4.style.display = numTeams >= 4 ? 'block' : 'none';
+                
+                updateTurnIndicator();
+            }
+
+            currentQuestionIndex = 0;
+            currentPhase = 'meaning';
+            loadQuestion();
+        });
+
+        function updateTurnIndicator() {
+            if (selectedMode !== 'challenge-local') return;
+            const colors = ["turn-p1", "turn-p2", "turn-p3", "turn-p4"];
+            const names = [p1Name, p2Name, p3Name, p4Name];
+            
+            turnIndicator.className = `turn-banner ${colors[currentTurn]}`;
+            currentPlayerText.innerHTML = `<i class="fa-solid fa-gamepad"></i> Turn: <strong>${names[currentTurn]}</strong>`;
+        }
+
+        function loadQuestion() {
+            feedbackCard.style.display = "none";
+
+            if (currentQuestionIndex >= quizData.length) {
+                showResults();
+                return;
+            }
+
+            const currentQuiz = quizData[currentQuestionIndex];
+            
+            const progressPercent = (currentQuestionIndex / quizData.length) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            progressText.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+            
+            optionsContainer.innerHTML = '';
+
+            // Render buttons based on step phases
+            if (currentPhase === 'meaning') {
+                stepMeaning.className = "step-badge active";
+                stepType.className = "step-badge";
+                questionEl.textContent = `Step 1: ${currentQuiz.question}`;
+
+                currentQuiz.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-btn');
+                    button.innerHTML = `<span>${option}</span><i class="fa-regular fa-circle" style="color: var(--text-muted)"></i>`;
+                    button.addEventListener('click', () => checkMeaningAnswer(index, button));
+                    optionsContainer.appendChild(button);
+                });
+            } else {
+                stepMeaning.className = "step-badge completed";
+                stepType.className = "step-badge active";
+                questionEl.textContent = `Step 2: What grammatical type is the phrasal verb '${currentQuiz.verb}'?`;
+
+                const types = ["Separable", "Inseparable", "Intransitive"];
+                types.forEach((type) => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-btn');
+                    button.innerHTML = `<span>${type}</span><i class="fa-regular fa-circle" style="color: var(--text-muted)"></i>`;
+                    button.addEventListener('click', () => checkTypeAnswer(type, button));
+                    optionsContainer.appendChild(button);
+                });
+            }
+
+            // Sync interactions disabled for non-active Online teams or spectating Judges
+            if (selectedMode === 'challenge-online') {
+                checkOnlineTurnActions();
+            }
+        }
+
+        function checkMeaningAnswer(selectedIndex, selectedButton) {
+            const currentQuiz = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === currentQuiz.correct) {
+                selectedButton.classList.add('correct-answer');
+                selectedButton.querySelector('i').className = "fa-solid fa-circle-check";
+                
+                if (selectedMode === 'challenge-online') {
+                    syncOnlineStateUpdate({ currentPhase: 'type' });
+                } else {
+                    setTimeout(() => {
+                        currentPhase = 'type';
+                        loadQuestion();
+                    }, 1000);
+                }
+            } else {
+                const details = typeInfo[currentQuiz.type];
+                const msg = `The correct meaning was:<br><strong>${currentQuiz.options[currentQuiz.correct]}</strong>.<br><br>${currentQuiz.meaning}`;
+                const info = `<strong>Type:</strong> <span class="badge ${details.badgeClass}" style="margin-top:0">${currentQuiz.type}</span><br><small style="display:inline-block; margin-top:5px; color: var(--text-muted);">${details.desc}</small>`;
+                
+                if (selectedMode === 'challenge-online') {
+                    syncOnlineStateUpdate({
+                        popupState: { show: true, message: msg, typeInfo: info }
+                    });
+                } else {
+                    errorMessage.innerHTML = msg;
+                    errorTypeInfo.innerHTML = info;
+                    popup.showModal();
+                }
+            }
+        }
+
+        function checkTypeAnswer(selectedType, selectedButton) {
+            const currentQuiz = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            const details = typeInfo[currentQuiz.type];
+
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedType === currentQuiz.type) {
+                selectedButton.classList.add('correct-answer');
+                selectedButton.querySelector('i').className = "fa-solid fa-circle-check";
+                
+                addLocalPoint();
+
+                stepType.className = "step-badge completed";
+                
+                const fText = `<strong>Meaning:</strong> ${currentQuiz.meaning}<br><strong>Example:</strong> <em>"${currentQuiz.example}"</em>`;
+                const fDesc = `<strong>Type Rules:</strong> ${details.title}. ${details.desc}`;
+                const fBadge = `<span class="badge ${details.badgeClass}">${currentQuiz.type}</span>`;
+
+                if (selectedMode === 'challenge-online') {
+                    if (myTeamIndex === 0) p1Score++;
+                    if (myTeamIndex === 1) p2Score++;
+                    if (myTeamIndex === 2) p3Score++;
+                    if (myTeamIndex === 3) p4Score++;
+
+                    syncOnlineStateUpdate({
+                        feedbackState: { show: true, text: fText, desc: fDesc, badge: fBadge },
+                        scores: [p1Score, p2Score, p3Score, p4Score]
+                    });
+                } else {
+                    feedbackText.innerHTML = fText;
+                    feedbackTypeDesc.innerHTML = fDesc;
+                    feedbackBadgeContainer.innerHTML = fBadge;
+                    feedbackCard.style.display = "block";
+                    
+                    setTimeout(() => {
+                        const card = document.querySelector('.card');
+                        card.scrollTo({ top: card.scrollHeight, behavior: 'smooth' });
+                    }, 100);
+                }
+            } else {
+                const msg = `Incorrect grammatical classification!<br><br>The correct type of '${currentQuiz.verb}' is <strong>${currentQuiz.type}</strong>.<br><br>${currentQuiz.meaning}`;
+                const info = `<strong>Type Rules:</strong> <span class="badge ${details.badgeClass}" style="margin-top:0">${currentQuiz.type}</span><br><small style="display:inline-block; margin-top:5px; color: var(--text-muted);">${details.desc}</small>`;
+                
+                if (selectedMode === 'challenge-online') {
+                    syncOnlineStateUpdate({
+                        popupState: { show: true, message: msg, typeInfo: info }
+                    });
+                } else {
+                    errorMessage.innerHTML = msg;
+                    errorTypeInfo.innerHTML = info;
+                    popup.showModal();
+                }
+            }
+        }
+
+        function addLocalPoint() {
+            if (selectedMode === 'individual') {
+                soloScore++;
+                scoreSoloVal.textContent = soloScore;
+            } else if (selectedMode === 'challenge-local') {
+                if (currentTurn === 0) { p1Score++; scoreP1Val.textContent = p1Score; }
+                else if (currentTurn === 1) { p2Score++; scoreP2Val.textContent = p2Score; }
+                else if (currentTurn === 2) { p3Score++; scoreP3Val.textContent = p3Score; }
+                else if (currentTurn === 3) { p4Score++; scoreP4Val.textContent = p4Score; }
+            }
+        }
+
+        function localNextQuestion() {
+            currentQuestionIndex++;
+            currentPhase = 'meaning';
+            if (selectedMode === 'challenge-local') {
+                currentTurn = (currentTurn + 1) % numTeams;
+                updateTurnIndicator();
+            }
+            loadQuestion();
+        }
+
+        continueNextBtn.addEventListener('click', () => {
+            if (selectedMode === 'challenge-online') {
+                const nextQuestionIdx = currentQuestionIndex + 1;
+                const nextTurnIdx = (currentTurn + 1) % numTeams;
+                syncOnlineStateUpdate({
+                    currentQuestionIndex: nextQuestionIdx,
+                    currentPhase: 'meaning',
+                    currentTurn: nextTurnIdx,
+                    feedbackState: { show: false, text: '', desc: '', badge: '' }
+                });
+            } else {
+                localNextQuestion();
+            }
+        });
+
+        closePopupBtn.addEventListener('click', () => {
+            popup.close();
+            if (selectedMode === 'challenge-online') {
+                const nextQuestionIdx = currentQuestionIndex + 1;
+                const nextTurnIdx = (currentTurn + 1) % numTeams;
+                syncOnlineStateUpdate({
+                    currentQuestionIndex: nextQuestionIdx,
+                    currentPhase: 'meaning',
+                    currentTurn: nextTurnIdx,
+                    popupState: { show: false, message: '', typeInfo: '' }
+                });
+            } else {
+                localNextQuestion();
+            }
+        });
+
+
+        // =========================================================================
+        // REAL-TIME MULTIPLAYER SYNC ENGINE (FIRESTORE) WITH JUDGE ROLE
+        // =========================================================================
+
+        const getRoomDocRef = (id) => doc(db, 'artifacts', appId, 'public', 'data', 'rooms', id);
+
+        const generateRoomCode = () => {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 5; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return 'PV-' + result;
+        };
+
+        document.getElementById('btn-create-room').addEventListener('click', async () => {
+            if (!isFirebaseReady || !currentUser) return;
+            
+            const newCode = generateRoomCode();
+            currentRoomId = newCode;
+            amIHost = true;
+            isJudge = false;
+            myTeamIndex = 0; // Host defaults to Team 1
+
+            const myName = document.getElementById('online-my-name-input').value.trim() || "Group Alpha";
+            
+            // Build initial index pool
+            const initialIndices = Array.from({length: quizData.length}, (_, i) => i);
+            for (let i = initialIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = initialIndices[i];
+                initialIndices[i] = initialIndices[j];
+                initialIndices[j] = temp;
+            }
+
+            // Room doc mapped strictly matching path requirements (RULE 1)
+            const roomData = {
+                roomId: newCode,
+                hostId: currentUser.uid,
+                status: 'waiting',
+                numTeams: 1,
+                currentTurn: 0,
+                currentQuestionIndex: 0,
+                currentPhase: 'meaning',
+                shuffledIndices: initialIndices,
+                teams: [
+                    { name: myName, playerId: currentUser.uid, color: '--p1-color', score: 0 },
+                    { name: '[Empty Slot]', playerId: '', color: '--p2-color', score: 0 },
+                    { name: '[Empty Slot]', playerId: '', color: '--p3-color', score: 0 },
+                    { name: '[Empty Slot]', playerId: '', color: '--p4-color', score: 0 }
+                ],
+                judges: [], // Spectating judges
+                popupState: { show: false, message: '', typeInfo: '' },
+                feedbackState: { show: false, text: '', desc: '', badge: '' }
+            };
+
+            const docRef = getRoomDocRef(newCode);
+            await setDoc(docRef, roomData);
+
+            setupRoomRealTimeListener(newCode);
+            showOnlineLobby(newCode);
+        });
+
+        // JOIN AS PLAYER
+        document.getElementById('btn-join-room').addEventListener('click', async () => {
+            if (!isFirebaseReady || !currentUser) return;
+
+            const codeInput = document.getElementById('join-room-code-input').value.trim().toUpperCase();
+            if (!codeInput) return;
+
+            const docRef = getRoomDocRef(codeInput);
+            const snap = await getDoc(docRef);
+
+            if (!snap.exists()) {
+                alert("Room not found! Verify your code.");
+                return;
+            }
+
+            currentRoomId = codeInput;
+            amIHost = false;
+            isJudge = false;
+
+            const data = snap.data();
+            const myName = document.getElementById('online-my-name-input').value.trim() || "Group Beta";
+
+            let assignedSlot = -1;
+            const updatedTeams = [...data.teams];
+            for (let i = 0; i < 4; i++) {
+                if (!updatedTeams[i].playerId) {
+                    updatedTeams[i].playerId = currentUser.uid;
+                    updatedTeams[i].name = myName;
+                    assignedSlot = i;
+                    break;
+                }
+            }
+
+            if (assignedSlot === -1) {
+                alert("Room is already full! (Max 4 active teams)");
+                return;
+            }
+
+            myTeamIndex = assignedSlot;
+            
+            await updateDoc(docRef, {
+                teams: updatedTeams,
+                numTeams: data.numTeams + 1
+            });
+
+            setupRoomRealTimeListener(codeInput);
+            showOnlineLobby(codeInput);
+        });
+
+        // JOIN AS SPECTATOR / JUDGE
+        document.getElementById('btn-join-judge').addEventListener('click', async () => {
+            if (!isFirebaseReady || !currentUser) return;
+
+            const codeInput = document.getElementById('join-room-code-input').value.trim().toUpperCase();
+            if (!codeInput) return;
+
+            const docRef = getRoomDocRef(codeInput);
+            const snap = await getDoc(docRef);
+
+            if (!snap.exists()) {
+                alert("Room not found! Verify your code.");
+                return;
+            }
+
+            currentRoomId = codeInput;
+            amIHost = false;
+            isJudge = true;
+            myTeamIndex = -1; // -1 represents spectator role
+
+            const data = snap.data();
+            const myName = document.getElementById('online-my-name-input').value.trim() || "Judge / Spectator";
+
+            const updatedJudges = data.judges ? [...data.judges] : [];
+            updatedJudges.push({
+                playerId: currentUser.uid,
+                name: myName
+            });
+
+            await updateDoc(docRef, {
+                judges: updatedJudges
+            });
+
+            setupRoomRealTimeListener(codeInput);
+            showOnlineLobby(codeInput);
+        });
+
+        function showOnlineLobby(code) {
+            welcomeScreen.classList.remove('active');
+            onlineLobbyScreen.classList.add('active');
+            document.getElementById('lobby-room-code-text').textContent = code;
+
+            if (amIHost) {
+                document.getElementById('btn-start-online-game').style.display = 'block';
+                document.getElementById('online-lobby-waiting-msg').style.display = 'none';
+            } else {
+                document.getElementById('btn-start-online-game').style.display = 'none';
+                document.getElementById('online-lobby-waiting-msg').style.display = 'block';
+            }
+        }
+
+        document.getElementById('copy-code-btn').addEventListener('click', () => {
+            const code = document.getElementById('lobby-room-code-text').textContent;
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        });
+
+        function setupRoomRealTimeListener(code) {
+            if (roomStateUnsubscribe) roomStateUnsubscribe();
+
+            const docRef = getRoomDocRef(code);
+            roomStateUnsubscribe = onSnapshot(docRef, (docSnap) => {
+                if (!docSnap.exists()) return;
+                const data = docSnap.data();
+
+                // Update connected players
+                const listContainer = document.getElementById('lobby-teams-list-el');
+                listContainer.innerHTML = '';
+                data.teams.forEach((team, index) => {
+                    const filled = team.playerId !== '';
+                    const labelColor = filled ? `var(${team.color})` : 'var(--text-muted)';
+                    listContainer.innerHTML += `
+                        <div class="lobby-team-slot ${filled ? 'filled' : ''}">
+                            <span style="color: ${labelColor}">
+                                <i class="fa-solid ${filled ? 'fa-circle-check' : 'fa-circle-dot'}"></i> Team ${index + 1}: ${team.name}
+                            </span>
+                            ${team.playerId === currentUser.uid ? '<span class="badge" style="background:#4f46e5; margin:0">YOU</span>' : ''}
+                        </div>
+                    `;
+                });
+
+                // Update connected judges
+                const judgesContainer = document.getElementById('lobby-judges-list-el');
+                if (data.judges && data.judges.length > 0) {
+                    judgesContainer.innerHTML = '';
+                    data.judges.forEach((judge) => {
+                        const isMe = judge.playerId === currentUser.uid;
+                        judgesContainer.innerHTML += `
+                            <div class="lobby-team-slot filled" style="border-color: var(--judge-color)">
+                                <span style="color: var(--judge-color)">
+                                    <i class="fa-solid fa-gavel"></i> ${judge.name}
+                                </span>
+                                ${isMe ? '<span class="badge" style="background:var(--judge-color); margin:0">YOU (JUDGE)</span>' : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    judgesContainer.innerHTML = `
+                        <div class="lobby-team-slot" style="color: var(--text-muted); font-style: italic; justify-content: center;">
+                            No judges connected yet.
+                        </div>
+                    `;
+                }
+
+                // If room status is changed to playing, swap screens
+                if (data.status === 'playing') {
+                    numTeams = data.numTeams;
+                    currentQuestionIndex = data.currentQuestionIndex;
+                    currentPhase = data.currentPhase;
+                    currentTurn = data.currentTurn;
+                    onlineShuffledIndices = data.shuffledIndices;
+                    
+                    const targetQuestions = [];
+                    onlineShuffledIndices.forEach(idx => {
+                        targetQuestions.push(quizData[idx]);
+                    });
+                    quizData.splice(0, quizData.length, ...targetQuestions);
+
+                    p1Score = data.teams[0].score;
+                    p2Score = data.teams[1].score;
+                    p3Score = data.teams[2].score;
+                    p4Score = data.teams[3].score;
+
+                    scoreP1Val.textContent = p1Score;
+                    scoreP2Val.textContent = p2Score;
+                    scoreP3Val.textContent = p3Score;
+                    scoreP4Val.textContent = p4Score;
+
+                    p1Name = data.teams[0].name;
+                    p2Name = data.teams[1].name;
+                    p3Name = data.teams[2].name;
+                    p4Name = data.teams[3].name;
+
+                    scoreboardP1Label.textContent = p1Name;
+                    scoreboardP2Label.textContent = p2Name;
+                    scoreboardP3Label.textContent = p3Name;
+                    scoreboardP4Label.textContent = p4Name;
+
+                    vsScoreCardP1.style.display = 'block';
+                    vsScoreCardP2.style.display = 'block';
+                    vsScoreCardP3.style.display = numTeams >= 3 ? 'block' : 'none';
+                    vsScoreCardP4.style.display = numTeams >= 4 ? 'block' : 'none';
+                    soloScoreboardCard.style.display = 'none';
+
+                    if (data.popupState.show) {
+                        errorMessage.innerHTML = data.popupState.message;
+                        errorTypeInfo.innerHTML = data.popupState.typeInfo;
+                        if (!popup.open) popup.showModal();
+                    } else {
+                        if (popup.open) popup.close();
+                    }
+
+                    if (data.feedbackState.show) {
+                        feedbackText.innerHTML = data.feedbackState.text;
+                        feedbackTypeDesc.innerHTML = data.feedbackState.desc;
+                        feedbackBadgeContainer.innerHTML = data.feedbackState.badge;
+                        feedbackCard.style.display = "block";
+                    } else {
+                        feedbackCard.style.display = "none";
+                    }
+
+                    if (onlineLobbyScreen.classList.contains('active')) {
+                        onlineLobbyScreen.classList.remove('active');
+                        quizScreen.classList.add('active');
+                    }
+
+                    updateOnlineTurnUI(data);
+                    loadQuestion();
+                }
+            }, (error) => {
+                console.error("Firestore sync subscription error", error);
+            });
+        }
+
+        document.getElementById('btn-start-online-game').addEventListener('click', async () => {
+            if (!isFirebaseReady || !currentRoomId) return;
+            const docRef = getRoomDocRef(currentRoomId);
+            await updateDoc(docRef, { status: 'playing' });
+        });
+
+        async function syncOnlineStateUpdate(updatedFields) {
+            if (!isFirebaseReady || !currentRoomId) return;
+            const docRef = getRoomDocRef(currentRoomId);
+            
+            if (updatedFields.scores) {
+                const snap = await getDoc(docRef);
+                const teamsData = [...snap.data().teams];
+                teamsData[0].score = updatedFields.scores[0];
+                teamsData[1].score = updatedFields.scores[1];
+                teamsData[2].score = updatedFields.scores[2];
+                teamsData[3].score = updatedFields.scores[3];
+                updatedFields.teams = teamsData;
+                delete updatedFields.scores;
+            }
+
+            await updateDoc(docRef, updatedFields);
+        }
+
+        function updateOnlineTurnUI(data) {
+            if (isJudge) {
+                const activeTeamName = data.teams[data.currentTurn].name;
+                turnIndicator.style.display = 'flex';
+                turnIndicator.className = 'turn-banner turn-judge';
+                currentPlayerText.innerHTML = `<i class="fa-solid fa-gavel"></i> Spectating as Judge | Turn: <strong>${activeTeamName}</strong>`;
+                return;
+            }
+
+            const colors = ["turn-p1", "turn-p2", "turn-p3", "turn-p4"];
+            const team = data.teams[data.currentTurn];
+            
+            turnIndicator.style.display = 'flex';
+            turnIndicator.className = `turn-banner ${colors[data.currentTurn]}`;
+            currentPlayerText.innerHTML = `<i class="fa-solid fa-gamepad"></i> Turn: <strong>${team.name}</strong>`;
+        }
+
+        function checkOnlineTurnActions() {
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+
+            if (isJudge) {
+                // Jueces can never click on answers
+                buttons.forEach(btn => btn.disabled = true);
+                continueNextBtn.style.display = 'none';
+                closePopupBtn.style.display = 'none';
+                
+                const activeName = (currentTurn === 0) ? p1Name : (currentTurn === 1) ? p2Name : (currentTurn === 2) ? p3Name : p4Name;
+                questionEl.innerHTML += `<div style="margin-top: 15px; font-size: 0.95rem; color: var(--primary); font-weight: 700;"><i class="fa-solid fa-gavel"></i> You are spectating. Waiting for <strong>${activeName}</strong> to play...</div>`;
+                return;
+            }
+
+            const activeIsMine = (currentTurn === myTeamIndex);
+
+            if (activeIsMine) {
+                buttons.forEach(btn => btn.disabled = false);
+                continueNextBtn.style.display = 'block';
+                closePopupBtn.style.display = 'block';
+            } else {
+                buttons.forEach(btn => btn.disabled = true);
+                continueNextBtn.style.display = 'none';
+                closePopupBtn.style.display = 'none';
+                
+                const activeName = (currentTurn === 0) ? p1Name : (currentTurn === 1) ? p2Name : (currentTurn === 2) ? p3Name : p4Name;
+                questionEl.innerHTML += `<div style="margin-top: 15px; font-size: 0.95rem; color: var(--text-muted); font-style: italic;"><i class="fa-solid fa-hourglass-half"></i> Waiting for <strong>${activeName}</strong> to play...</div>`;
+            }
+        }
+
+
+        // =========================================================================
+        // SCORE & LEADERBOARD END SUMMARIES
+        // =========================================================================
+
+        function showResults() {
+            quizScreen.classList.remove('active');
+            endScreen.classList.add('active');
+            
+            const maxPoints = quizData.length;
+
+            if (selectedMode === 'individual') {
+                endScreenTitle.textContent = "Congratulations!";
+                endScreenDesc.textContent = "You completed your individual phrasal verbs challenge. Look at your score!";
+                
+                let rank = "Beginner Learner 📚";
+                let colorClass = "var(--solo-color)";
+                if (soloScore >= 26) {
+                    rank = "Phrasal Verbs Expert! 🏆";
+                    colorClass = "var(--success)";
+                    endScreenIcon.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--success)"></i>`;
+                } else if (soloScore >= 18) {
+                    rank = "Advanced Speaker ⭐";
+                    colorClass = "var(--primary)";
+                    endScreenIcon.innerHTML = `<i class="fa-solid fa-star" style="color: var(--solo-color)"></i>`;
+                } else {
+                    endScreenIcon.innerHTML = `<i class="fa-solid fa-book-open"></i>`;
+                }
+
+                resultsBoard.innerHTML = `
+                    <div class="result-card result-card-winner" style="border-left: 6px solid ${colorClass}">
+                        <div>
+                            <span class="result-team-name" style="color: ${colorClass};">Your Performance</span><br>
+                            <span class="result-team-badge" style="background-color: ${colorClass};">${rank}</span>
+                        </div>
+                        <div class="result-score">${soloScore} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ ${maxPoints}</span></div>
+                    </div>
+                `;
+            } else {
+                endScreenTitle.textContent = isJudge ? "Match Finished!" : "Challenge Finished!";
+                endScreenDesc.textContent = isJudge ? "Here are the final standings for this match:" : "Excellent match! Here are the final standings for all competitors:";
+                endScreenIcon.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+
+                let standings = [];
+                standings.push({ name: p1Name, score: p1Score, color: "var(--p1-color)" });
+                standings.push({ name: p2Name, score: p2Score, color: "var(--p2-color)" });
+                if (numTeams >= 3) standings.push({ name: p3Name, score: p3Score, color: "var(--p3-color)" });
+                if (numTeams >= 4) standings.push({ name: p4Name, score: p4Score, color: "var(--p4-color)" });
+
+                standings.sort((a, b) => b.score - a.score);
+
+                const topScore = Math.max(...standings.map(s => s.score));
+
+                let standingsHtml = '';
+                standings.forEach((team, idx) => {
+                    let badge = '';
+                    let cardClass = 'result-card';
+
+                    if (team.score === topScore && topScore > 0) {
+                        cardClass += ' result-card-winner';
+                        badge = "Winner 👑";
+                    } else {
+                        const placements = ["2nd Place 🥈", "3rd Place 🥉", "4th Place 🎖️"];
+                        badge = placements[idx - 1] || "Competitor";
+                    }
+
+                    standingsHtml += `
+                        <div class="${cardClass}" style="border-left: 6px solid ${team.color}">
+                            <div>
+                                <span class="result-team-name" style="color: ${team.color};">${team.name}</span><br>
+                                <span class="result-team-badge" style="background-color: ${team.color};">${badge}</span>
+                            </div>
+                            <div class="result-score">${team.score} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">pts</span></div>
+                        </div>
+                    `;
+                });
+
+                resultsBoard.innerHTML = standingsHtml;
+            }
+        }
+    </script>
+</body>
+</html>
